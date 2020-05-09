@@ -266,6 +266,10 @@ end
 
 
 function Session:event_stopped(stopped)
+  if #self.step_stack ~= 0 then
+    self:_step()
+    return
+  end
   self.stopped_thread_id = stopped.threadId
   self:request('threads', nil, function(err0, threads_resp)
     if err0 then
@@ -452,6 +456,7 @@ local function session_defaults()
     stopped_thread_id = nil;
     current_frame = nil;
     threads = {};
+    step_stack = {};
   }
 end
 
@@ -628,14 +633,23 @@ function Session:_step(step)
     print('No stopped thread. Cannot move')
     return
   end
+
   local thread_id = self.stopped_thread_id
-  self.stopped_thread_id = nil
-  vim.fn.sign_unplace(ns_pos)
-  session:request(step, { threadId = thread_id; }, function(err0, _)
-    if err0 then
-      print('Error on '.. step .. ': ' .. err0.message)
+  if #self.step_stack == 0 then
+    local current_frame_index = self:_current_frame_index()
+    for _ = 0,current_frame_index-1 do
+      table.insert(self.step_stack, 'stepOut')
     end
-  end)
+    table.insert(self.step_stack, step)
+  end
+  self.stopped_thread_id = nil
+  step = table.remove(self.step_stack)
+  vim.fn.sign_unplace(ns_pos)
+    session:request(step, { threadId = thread_id; }, function(err0, _)
+      if err0 then
+        print('Error on '.. step .. ': ' .. err0.message)
+      end
+    end)
 end
 
 
