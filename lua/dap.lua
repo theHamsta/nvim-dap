@@ -291,7 +291,7 @@ function Session:event_stopped(stopped)
           current_frame = frame
           self.current_frame = frame
         end
-        frames[frame.id] = frame
+        table.insert(frames, frame)
       end
       if not current_frame then
         return
@@ -343,6 +343,31 @@ function Session.event_output(_, body)
   repl.append(body.output, '$')
 end
 
+function Session:_current_frame_index()
+  local current_frame_index = nil
+  if self.stopped_thread_id and self.threads[self.stopped_thread_id].frames then
+    local frames = self.threads[self.stopped_thread_id].frames
+    for i, f in ipairs(frames) do
+      if self.current_frame.id == f.id then
+        current_frame_index = i
+      end
+    end
+  end
+  return current_frame_index
+end
+
+function Session:_frame_delta(delta)
+  if self.stopped_thread_id and self.threads[self.stopped_thread_id].frames then
+    local frames = self.threads[self.stopped_thread_id].frames
+    local current_frame_index = self:_current_frame_index()
+
+    current_frame_index = current_frame_index + delta
+    if 0 <= current_frame_index and current_frame_index <= #frames then
+     self.current_frame = frames[current_frame_index]
+     jump_to_frame(self.current_frame, true)
+   end
+  end
+end
 
 local function remove_breakpoint_signs(bufnr, lnum)
   local signs = vim.fn.sign_getplaced(bufnr, { group = ns_breakpoints; lnum = lnum; })[1].signs
@@ -633,6 +658,18 @@ function M.stop()
   if session then
     session:close()
     session = nil
+  end
+end
+
+function M.up()
+  if session then
+    session:_frame_delta(1)
+  end
+end
+
+function M.down()
+  if session then
+    session:_frame_delta(-1)
   end
 end
 

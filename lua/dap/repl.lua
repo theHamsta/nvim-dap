@@ -14,6 +14,8 @@ M.commands = {
   threads = {'.threads'},
   frames = {'.frames'},
   exit = {'exit', '.exit'},
+  up = {'.up'},
+  down = {'.down'},
 }
 
 function M.open()
@@ -75,6 +77,10 @@ function M.execute(text)
     session:_step('stepIn')
   elseif vim.tbl_contains(M.commands.out, text) then
     session:_step('stepOut')
+  elseif vim.tbl_contains(M.commands.up, text) then
+    session:_frame_delta(1)
+  elseif vim.tbl_contains(M.commands.down, text) then
+    session:_frame_delta(-1)
   elseif vim.tbl_contains(M.commands.scopes, text) then
     local frame = session.current_frame
     if frame then
@@ -96,7 +102,11 @@ function M.execute(text)
   elseif vim.tbl_contains(M.commands.frames, text) then
     local frames = (session.threads[session.stopped_thread_id] or {}).frames
     for _, frame in pairs(frames) do
-      M.append(frame.name)
+      if frame.id == session.current_frame.id then
+         M.append('→ '..frame.name)
+      else
+         M.append('  '..frame.name)
+      end
     end
   else
     local lnum = vim.fn.line('$') - 1
