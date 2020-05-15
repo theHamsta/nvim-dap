@@ -163,6 +163,7 @@ function Session:run_in_terminal(request)
   local win = api.nvim_get_current_win()
   api.nvim_command('belowright new')
   local jobid = vim.fn.termopen(body.args, opts)
+  self.termwin = api.nvim_get_current_win()
   api.nvim_set_current_win(win)
   if jobid == 0 or jobid == -1 then
     local _ = log.error() and log.error('Could not spawn terminal', jobid, request)
@@ -675,6 +676,11 @@ function Session:close()
   self.client.close()
   repl.set_session(nil)
   virtual_text.clear_virtual_text()
+  if self.termwin then
+    api.nvim_win_close(self.termwin, true)
+    repl.execute('exit')
+    vim.cmd('stopinsert')
+  end
 end
 
 
