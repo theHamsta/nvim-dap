@@ -5,7 +5,7 @@ local hl_namespace
 local api = vim.api
 
 local require_ok, locals = pcall(require, "nvim-treesitter.locals")
-local require_ok, utils = pcall(require, "nvim-treesitter.utils")
+local require_ok, utils = pcall(require, "nvim-treesitter.ts_utils")
 
 if not hl_namespace then
   hl_namespace = api.nvim_create_namespace("dap.treesitter")
@@ -49,7 +49,7 @@ function M.set_virtual_text(stackframe)
 
   local virtual_text = {}
   for _, d in pairs(definition_nodes) do
-    if d and d.var then -- is definition and is variable definition?
+    if d and d.var and d.var.node then -- is definition and is variable definition?
       local node = d.var.node
       local name = utils.get_node_text(node, buf)[1]
       local var_line, var_col = node:start()
