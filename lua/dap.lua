@@ -795,6 +795,24 @@ function M.step_out()
   session:_step('stepOut')
 end
 
+function M.reverse_continue()
+  if not session then return end
+  if not session.capabilities.supportsStepBack then
+    print("Debug Adapter does not support stepBack!")
+  else
+    session:_step('reverseContinue')
+  end
+end
+
+function M.step_back()
+  if not session then return end
+  if not session.capabilities.supportsStepBack then
+    print("Debug Adapter does not support stepBack!")
+  else
+    session:_step('stepBack')
+  end
+end
+
 function M.stop()
   if session then
     session:close()
@@ -870,6 +888,13 @@ function M.continue()
   end
 end
 
+function M.continue()
+  if not session then
+    launch_debug_adapter()
+  else
+    session:_step('continue')
+  end
+end
 
 local function completions_to_items(completions, prefix)
   local candidates = vim.tbl_filter(

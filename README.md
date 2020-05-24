@@ -14,7 +14,7 @@
 - [ ] set function breakpoints
 - [ ] set exception breakpoints
 - [x] step over, step into, step out
-- [ ] step back, reverse continue
+- [x] step back, reverse continue
 - [x] Goto
 - [x] restart
 - [x] stop
