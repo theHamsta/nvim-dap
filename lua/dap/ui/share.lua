@@ -1,4 +1,24 @@
+local api = vim.api
+
 local M = {}
+
+
+function M.apply_winopts(win, opts)
+  if not opts then return end
+  assert(
+    type(opts) == 'table',
+    'winopts must be a table, not ' .. type(opts) .. ': ' .. vim.inspect(opts)
+  )
+  for k, v in pairs(opts) do
+    if k == 'width' then
+      api.nvim_win_set_width(win, v)
+    elseif k == 'height' then
+      api.nvim_win_set_height(win, v)
+    else
+      api.nvim_win_set_option(win, k, v)
+    end
+  end
+end
 
 
 function M.pick_one(items, prompt, label_fn)
